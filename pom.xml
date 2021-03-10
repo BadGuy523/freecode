@@ -1,79 +1,111 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <!--pom版本号-->
     <modelVersion>4.0.0</modelVersion>
+
+    <groupId>com.zjq</groupId>
+    <artifactId>freecode</artifactId>
+    <version>1.0.0</version>
     <packaging>pom</packaging>
-    <modules>
-        <module>common</module>
-        <module>free-servers/server-one</module>
-    </modules>
+    <name>freecode</name>
+    <description>free try for code</description>
+
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
         <version>2.4.3</version>
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
-    <groupId>com.zjq</groupId>
-    <artifactId>freecode</artifactId>
-    <version>1.0.0</version>
-    <name>freecode</name>
-    <description>free try for code</description>
-    <properties>
-        <java.version>1.8</java.version>
-    </properties>
-    <dependencies>
-        <!--spring-boot-starter-->
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-web</artifactId>
-        </dependency>
 
+    <modules>
+        <module>common</module>
+        <module>free-servers/server-one</module>
+    </modules>
+
+    <properties>
+        <spring.boot.version>2.4.3</spring.boot.version>
+        <parent.version>1.0.0</parent.version>
+        <java.version>1.8</java.version>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <maven.compile.plugin.version>3.5.1</maven.compile.plugin.version>
+
+        <lombok.version>1.18.12</lombok.version>
+        <easyexcel.version>2.2.7</easyexcel.version>
+        <fastjson.version>1.2.75</fastjson.version>
+        <commons.io.version>2.8.0</commons.io.version>
+
+        <common.version>1.0.0</common.version>
+        <server.one.version>1.0.0</server.one.version>
+    </properties>
+
+    <!-- dependencies标签中的依赖会被子项目完全继承：即父项目中有的依赖都会出现在子项目中 -->
+    <dependencies>
         <!--lombok-->
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
-            <optional>true</optional>
+            <version>${lombok.version}</version>
         </dependency>
-
-        <!--test-->
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-test</artifactId>
-            <scope>test</scope>
-        </dependency>
-
-        <!--easyexcel-->
-<!--        <dependency>-->
-<!--            <groupId>com.alibaba</groupId>-->
-<!--            <artifactId>easyexcel</artifactId>-->
-<!--            <version>2.2.7</version>-->
-<!--        </dependency>-->
-
-        <!--fastjson-->
-        <dependency>
-            <groupId>com.alibaba</groupId>
-            <artifactId>fastjson</artifactId>
-            <version>1.2.75</version>
-        </dependency>
-
-        <!--common-io-->
-        <dependency>
-            <groupId>commons-io</groupId>
-            <artifactId>commons-io</artifactId>
-            <version>2.8.0</version>
-        </dependency>
-
     </dependencies>
+
+    <!-- 依赖管理中声明的依赖并不会被子项目直接继承，在子项目中需要声明，但是只需要声明groupId和artifactId -->
+    <dependencyManagement>
+        <dependencies>
+            <!--spring-boot-starter-->
+            <dependency>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-starter-web</artifactId>
+                <version>${spring.boot.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-starter-test</artifactId>
+                <version>${spring.boot.version}</version>
+                <scope>test</scope>
+            </dependency>
+
+            <!--easyexcel-->
+            <dependency>
+                <groupId>com.alibaba</groupId>
+                <artifactId>easyexcel</artifactId>
+                <version>${easyexcel.version}</version>
+            </dependency>
+
+            <!--fastjson-->
+            <dependency>
+                <groupId>com.alibaba</groupId>
+                <artifactId>fastjson</artifactId>
+                <version>${fastjson.version}</version>
+            </dependency>
+
+            <!--common-io-->
+            <dependency>
+                <groupId>commons-io</groupId>
+                <artifactId>commons-io</artifactId>
+                <version>${commons.io.version}</version>
+            </dependency>
+
+            <!--common-->
+            <dependency>
+                <groupId>com.zjq</groupId>
+                <artifactId>common</artifactId>
+                <version>${common.version}</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
 
     <build>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.5.1</version>
+                <version>${maven.compile.plugin.version}</version>
                 <configuration>
-                    <source>1.8</source>
-                    <target>1.8</target>
+                    <source>${java.version}</source>
+                    <target>${java.version}</target>
                 </configuration>
             </plugin>
         </plugins>
