@@ -4,10 +4,11 @@ import com.alibaba.excel.EasyExcel;
 import com.alibaba.excel.ExcelWriter;
 import com.alibaba.excel.read.metadata.ReadSheet;
 import com.alibaba.excel.write.metadata.WriteSheet;
+import com.zjq.common.annotation.SheetNameAnnotation;
 import com.zjq.common.listener.EasyExcelCommonListener;
 import com.zjq.common.model.ParseExcelResult;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.io.IOUtils;
+import org.apache.commons.collections4.CollectionUtils;
 
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletResponse;
@@ -36,18 +37,18 @@ public class EasyExcelUtil {
      */
     public static ParseExcelResult parseExcel(Map<String,Class> sheetNameClassMap, InputStream inputStream) {
         ParseExcelResult result = new ParseExcelResult();
-        byte[] bytes = convertInputStreamToByteArray(inputStream);
+        byte[] bytes = IOUtil.convertInputStreamToByteArray(inputStream);
         // 获取sheet信息
-        List<ReadSheet> readSheets = EasyExcel.read(convertByteArrayToInputStream(bytes)).build().excelExecutor().sheetList();
+        List<ReadSheet> readSheets = EasyExcel.read(IOUtil.convertByteArrayToInputStream(bytes)).build().excelExecutor().sheetList();
         // 遍历sheet
         readSheets.forEach(sheet -> {
             EasyExcelCommonListener listener = new EasyExcelCommonListener();
-            // 获取sheet表头并与其对应对象做字段比对
+            // TODO:获取sheet表头并与其对应对象做字段比对
             String sheetName = sheet.getSheetName();
             Class clazz = sheetNameClassMap.get(sheetName);
             List<List<String>> head = sheet.getHead();
             // 解析对应sheet表的数据
-            EasyExcel.read(convertByteArrayToInputStream(bytes),clazz,listener).sheet(sheetName).doRead();
+            EasyExcel.read(IOUtil.convertByteArrayToInputStream(bytes),clazz,listener).sheet(sheetName).doRead();
             List list = listener.getList();
             result.getDatas().add(list);
         });
@@ -82,60 +83,135 @@ public class EasyExcelUtil {
         return result;
     }
 
+    /*以上为读取excel，以下为写入excel*/
+
     /**
-     * @Description: 写入excel并下载
+     * @Description: 从单对象数据集合中获取byte数组形式的一个单sheet的excel
      * @author zhangjunqiang
-     * @param sheetNameDataMap sheet名称和model数据map映射关系
-     * @param sheetNameClassMap sheet名称和model类map映射关系
-     * @param response http响应
-     * @date 2021/3/7 21:35
+     * @param datas 单对象数据集合
+     * @return byte[]
+     * @date 2021/3/18 21:50
      */
-    public static void writeExcel(Map<String,List<?>> sheetNameDataMap, Map<String,Class> sheetNameClassMap, HttpServletResponse response) {
+    public static byte[] getOneSheetExcelOfByteArray(List<?> datas) {
+        if (CollectionUtils.isEmpty(datas)) {
+            return new byte[0];
+        }
+        // 输出流
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        ExcelWriter excelWriter = EasyExcel.write(out).build();
+        writeDataToOutputStream(datas,excelWriter);
+        excelWriter.finish();
+        return out.toByteArray();
+    }
+
+    /**
+     * @Description: 从单对象数据集合中获取inputstream形式的一个单sheet的excel
+     * @author zhangjunqiang
+     * @param datas 单对象数据集合
+     * @return byte[]
+     * @date 2021/3/18 21:50
+     */
+    public static InputStream getOneSheetExcelOfInputstream(List<?> datas) {
+        return new ByteArrayInputStream(getOneSheetExcelOfByteArray(datas));
+    }
+
+    /**
+     * @Description: 从多对象数据集合中获取byte数组形式的一个单sheet的excel
+     * @author zhangjunqiang
+     * @param datasList 多对象数据集合
+     * @return InputStream
+     * @date 2021/3/18 21:50
+     */
+    public static byte[] getManySheetExcelOfByteArray(List<List<?>> datasList) {
+        if (CollectionUtils.isEmpty(datasList)) {
+            return new byte[0];
+        }
+        // 输出流
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        ExcelWriter excelWriter = EasyExcel.write(out).build();
+        datasList.forEach(datas -> writeDataToOutputStream(datas, excelWriter));
+        excelWriter.finish();
+        return out.toByteArray();
+    }
+
+    /**
+     * @Description: 从多对象数据集合中获取inputstream形式的一个单sheet的excel
+     * @author zhangjunqiang
+     * @param datasList 多对象数据集合
+     * @return InputStream
+     * @date 2021/3/18 21:50
+     */
+    public static InputStream getManySheetExcelOfInputStream(List<List<?>> datasList) {
+        return new ByteArrayInputStream(getManySheetExcelOfByteArray(datasList));
+    }
+
+
+    /**
+     * @Description: 从单对象数据集合中获取一个单sheet的excel写入httpResponse响应
+     * @author zhangjunqiang
+     * @param datas 单对象数据集合
+     * @return byte[]
+     * @date 2021/3/18 21:50
+     */
+    public static void getOneSheetExcelOfHttpResponse(List<?> datas,HttpServletResponse response) {
+        if (CollectionUtils.isEmpty(datas)) {
+            return;
+        }
         response.setContentType("application/vnd.ms-excel");
         response.setCharacterEncoding("utf-8");
-        // 这里URLEncoder.encode可以防止中文乱码
-        try (ServletOutputStream outputStream = response.getOutputStream()) {
+        try (ServletOutputStream outputStream = response.getOutputStream()){
             String fileName = URLEncoder.encode("template", "UTF-8");
             response.setHeader("Content-disposition", "attachment;filename=" + fileName + ".xlsx");
-            //新建ExcelWriter
             ExcelWriter excelWriter = EasyExcel.write(outputStream).build();
-            sheetNameDataMap.forEach((key,value) -> {
-                WriteSheet sheet = EasyExcel.writerSheet(key).head(sheetNameClassMap.get(key)).build();
-                excelWriter.write(value,sheet);
-            });
-            //关闭流
+            writeDataToOutputStream(datas, excelWriter);
             excelWriter.finish();
         } catch (IOException e) {
-            log.error("导出异常{}", e.getMessage());
+            log.error("IO异常{}", e.getMessage());
         }
     }
 
     /**
-     * @Description: 将输入流转换为byte数组
+     * @Description: 从多对象数据集合中获取一个多sheet的excel写入httpResponse响应
      * @author zhangjunqiang
-     * @param inputStream 输入流
+     * @param datasList 多对象数据集合
      * @return byte[]
-     * @date 2021/3/7 21:36
+     * @date 2021/3/18 21:50
      */
-    public static byte[] convertInputStreamToByteArray(InputStream inputStream) {
-        ByteArrayOutputStream outputStream = new ByteArrayOutputStream ();
-        try {
-            IOUtils.copy(inputStream,outputStream);
-        } catch (IOException e) {
-            e.printStackTrace();
+    public static void getManySheetExcelOfHttpResponse(List<List<?>> datasList,HttpServletResponse response) {
+        if (CollectionUtils.isEmpty(datasList)) {
+            return;
         }
-        return outputStream.toByteArray();
+        response.setContentType("application/vnd.ms-excel");
+        response.setCharacterEncoding("utf-8");
+        try (ServletOutputStream outputStream = response.getOutputStream()){
+            String fileName = URLEncoder.encode("template", "UTF-8");
+            response.setHeader("Content-disposition", "attachment;filename=" + fileName + ".xlsx");
+            ExcelWriter excelWriter = EasyExcel.write(outputStream).build();
+            datasList.forEach(datas -> writeDataToOutputStream(datas, excelWriter));
+            excelWriter.finish();
+        } catch (IOException e) {
+            log.error("IO异常{}", e.getMessage());
+        }
     }
 
     /**
-     * @Description: 将byte数组转换为输入流
+     * @Description: 将数据写入输出流
      * @author zhangjunqiang
-     * @param bytes byte数组
-     * @return InputStream
-     * @date 2021/3/7 21:36
+     * @param datas 数据集合
+     * @param excelWriter
+     * @date 2021/3/18 22:25
      */
-    public static InputStream convertByteArrayToInputStream(byte[] bytes) {
-        return new ByteArrayInputStream(bytes);
+    private static void writeDataToOutputStream(List<?> datas,ExcelWriter excelWriter) {
+        if (CollectionUtils.isEmpty(datas)) {
+            return;
+        }
+        // 获取类
+        Class<?> dataClass = datas.get(0).getClass();
+        // 获取sheet名称
+        String sheetName = dataClass.getAnnotation(SheetNameAnnotation.class).value();
+        // 将数据写入输出流
+        WriteSheet sheet = EasyExcel.writerSheet(sheetName).head(dataClass).build();
+        excelWriter.write(datas, sheet);
     }
 
 }
