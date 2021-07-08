@@ -15,7 +15,6 @@
         <groupId>com.zjq</groupId>
         <artifactId>freecode</artifactId>
         <version>1.0.0</version>
-        <relativePath>../../../freecode</relativePath>
     </parent>
 
     <dependencies>
@@ -28,12 +27,6 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
         </dependency>
-
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-test</artifactId>
-            <scope>test</scope>
-        </dependency>
     </dependencies>
 
     <build>
@@ -45,4 +38,5 @@
             </plugin>
         </plugins>
     </build>
+
 </project>
