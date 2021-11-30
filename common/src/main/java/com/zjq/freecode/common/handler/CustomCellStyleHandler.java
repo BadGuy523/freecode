@@ -1,6 +1,6 @@
 /**
  * @Description: 自定义写excel头部样式
- * @Author: zhangjunqiang zwx925931
+ * @Author: zhangjunqiang
  * @Date: 2021/11/18
  */
 public class CustomCellStyleHandler extends AbstractCellStyleStrategy {
