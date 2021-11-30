@@ -8,21 +8,20 @@ import java.util.List;
 import java.util.Map;
 
 /**
-  * @Description: 解析excel返回结果模型
-  * @Author: zhangjunqiang
-  * @Date: 2021/3/7 19:36
-  * @version v1.0
-  */
+ * @Description: 解析excel返回结果模型
+ * @Author: zhangjunqiang zwx925931
+ * @Date: 2021/11/18
+ */
 @Data
-public class ParseExcelResult {
-
+@Accessors(chain = true)
+public class ParseExcelResult<T> {
     /** 是否成功 */
     private Boolean isSuccess;
 
     /** 解析错误信息 */
-    private Map<String, List<String>> message = new HashMap<>();
+    private List<String> message;
 
     /** 解析后数据 */
-    private List<List<?>> datas = new ArrayList<>();
+    private List<T> datas;
 
 }
