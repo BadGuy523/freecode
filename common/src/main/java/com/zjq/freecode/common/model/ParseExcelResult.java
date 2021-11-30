@@ -9,7 +9,7 @@ import java.util.Map;
 
 /**
  * @Description: 解析excel返回结果模型
- * @Author: zhangjunqiang zwx925931
+ * @Author: zhangjunqiang
  * @Date: 2021/11/18
  */
 @Data
