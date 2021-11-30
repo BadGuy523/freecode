@@ -1,6 +1,6 @@
 /**
  * @Description: 自定义列宽处理器
- * @Author: zhangjunqiang zwx925931
+ * @Author: zhangjunqiang 
  * @Date: 2021/11/26
  */
 public class CustomCellWeightHandler extends AbstractColumnWidthStyleStrategy {
